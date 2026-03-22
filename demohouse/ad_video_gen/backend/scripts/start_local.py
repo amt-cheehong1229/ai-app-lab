@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import signal
 import subprocess
@@ -11,6 +12,8 @@ from dotenv import dotenv_values
 
 from bootstrap_local import BACKEND_ROOT, main as bootstrap_main
 
+STATE_DIR = BACKEND_ROOT / ".local_state"
+STATE_FILE = STATE_DIR / "local_services.json"
 
 SERVICES = [
     {
@@ -56,6 +59,27 @@ SERVICES = [
         "readiness_path": "/list-apps",
     },
 ]
+
+
+def write_runtime_state(processes: list[subprocess.Popen]) -> None:
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    state = {
+        "launcher_pid": os.getpid(),
+        "services": [
+            {
+                "name": service["name"],
+                "port": service["port"],
+                "pid": process.pid,
+            }
+            for process, service in zip(processes, SERVICES)
+        ],
+    }
+    STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def remove_runtime_state() -> None:
+    if STATE_FILE.exists():
+        STATE_FILE.unlink()
 
 
 def build_env() -> dict[str, str]:
@@ -160,6 +184,7 @@ def main() -> None:
             ]
             process = subprocess.Popen(cmd, cwd=service["cwd"], env=env)
             processes.append(process)
+            write_runtime_state(processes)
             print(f"Started {service['name']} on http://127.0.0.1:{service['port']}")
             wait_for_http_ready(
                 service_name=service["name"],
@@ -190,6 +215,7 @@ def main() -> None:
                     process.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
                     process.kill()
+        remove_runtime_state()
         print("Stopped local services.")
 
 
