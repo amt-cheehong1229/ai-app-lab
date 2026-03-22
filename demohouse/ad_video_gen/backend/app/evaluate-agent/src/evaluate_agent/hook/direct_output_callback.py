@@ -21,6 +21,8 @@ def direct_output_callback(
 ) -> Optional[dict]:
     """让工具结果直接输出，跳过LLM总结"""
     # 设置跳过总结标志
-    if tool.name == "evaluate_media":
+    if tool.name == "evaluate_media" and (
+        "scored_image_list" in tool_response or "scored_video_list" in tool_response
+    ):
         tool_context.actions.skip_summarization = True
     return tool_response  # 不能return None

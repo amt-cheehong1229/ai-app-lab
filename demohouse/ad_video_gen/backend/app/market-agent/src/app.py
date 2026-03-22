@@ -47,13 +47,11 @@ app_name = agent_run_config.app_name
 agent = agent_run_config.agent
 short_term_memory = agent_run_config.short_term_memory
 
-VEFAAS_REGION = os.getenv("APP_REGION", "cn-beijing")
-VEFAAS_FUNC_ID = os.getenv("_FAAS_FUNC_ID", "")
 agent_card_builder = AgentCardBuilder(
     agent=agent,
     provider=AgentProvider(
-        organization="Volcengine Agent Development Kit (VeADK)",
-        url=f"https://console.volcengine.com/vefaas/region:vefaas+{VEFAAS_REGION}/function/detail/{VEFAAS_FUNC_ID}",
+        organization="AI App Lab",
+        url=os.getenv("AGENT_PROVIDER_URL", "http://127.0.0.1"),
     ),
 )
 
@@ -152,7 +150,7 @@ a2a_app.get(
 
 # === Build mcp server ===
 
-mcp = FastMCP.from_fastapi(app=a2a_app, name=app_name, include_tags={"mcp"})
+mcp = FastMCP.from_fastapi(app=a2a_app, name=app_name, tags={"mcp"})
 
 # Create MCP ASGI app
 mcp_app = mcp.http_app(path="/", transport="streamable-http")

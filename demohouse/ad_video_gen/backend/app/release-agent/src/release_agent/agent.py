@@ -11,7 +11,6 @@
 
 from veadk import Agent
 from .sub_agents.film_agent.agent import film_agent
-from veadk.config import getenv
 from release_agent.prompt import PROMPT_RELEASE_AGENT
 
 agent = Agent(
@@ -22,11 +21,6 @@ agent = Agent(
     sub_agents=[
         film_agent,
     ],
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_RELEASE_AGENT", "enabled")}
-        }
-    },
 )
 
 root_agent = agent

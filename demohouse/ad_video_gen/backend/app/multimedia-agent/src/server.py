@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ad_video_gen_runtime import patch_veadk_for_openai
+
+patch_veadk_for_openai()
+
 from multimedia_agent.agent import root_agent
 from veadk.memory.short_term_memory import ShortTermMemory
 from agentkit import AgentkitAgentServerApp

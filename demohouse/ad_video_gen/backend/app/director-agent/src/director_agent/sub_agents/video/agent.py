@@ -34,9 +34,6 @@ video_generate_agent = Agent(
     tools=[video_generate],
     after_tool_callback=[raise_result_error, hook_shorten_url],
     generate_content_config=max_output_tokens_config,
-    model_extra_config={
-        "extra_body": {"thinking": {"type": getenv("THINKING_VIDEO_AGENT", "enabled")}}
-    },
 )
 
 video_format_agent = Agent(
@@ -48,11 +45,6 @@ video_format_agent = Agent(
     output_schema=VideoList,
     output_key="video_list",
     after_model_callback=[fix_output_format],
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_VIDEO_FORMAT_AGENT", "disabled")}
-        }
-    },
 )
 
 video_agent = SequentialAgent(

@@ -11,12 +11,16 @@
 
 import asyncio
 import json
-import os
 from typing import Any
 
-from openai import AsyncOpenAI
 from pydantic import BaseModel
 from veadk.utils.logger import get_logger
+from ad_video_gen_runtime import (
+    build_async_openai_client,
+    build_strict_json_schema,
+    get_text_model,
+    get_vision_model,
+)
 
 logger = get_logger(__name__)
 
@@ -58,28 +62,24 @@ def repair_image_input(image_list: list[str]) -> list[dict[str, Any]]:
 
 async def filter_images(image_list: list[str]) -> list[str]:
     inputs = repair_image_input(image_list)
-    client = AsyncOpenAI(
-        base_url=os.getenv("MODEL_AGENT_API_BASE"),
-        api_key=os.getenv("MODEL_AGENT_API_KEY"),
-    )
+    client = build_async_openai_client()
     sem = asyncio.Semaphore(10)  # 限制并发
 
     async def process_message(_input):
         async with sem:
             try:
                 response = await client.responses.create(
-                    model="doubao-seed-1-6-251015",
+                    model=get_vision_model(),
                     instructions=filter_agent_instructions,
                     input=[{"role": "user", "content": [_input]}],
                     text={
                         "format": {
                             "type": "json_schema",
                             "name": "IsGood",
-                            "schema": IsGood.model_json_schema(),
+                            "schema": build_strict_json_schema(IsGood),
                             "strict": True,
                         }
                     },
-                    extra_body={"thinking": {"type": "disabled"}},
                 )
                 x = json.loads(response.output_text).get("is_good", False)
             except Exception:
@@ -92,16 +92,12 @@ async def filter_images(image_list: list[str]) -> list[str]:
 
 
 async def summarize_text(text: str):
-    client = AsyncOpenAI(
-        base_url=os.getenv("MODEL_AGENT_API_BASE"),
-        api_key=os.getenv("MODEL_AGENT_API_KEY"),
-    )
+    client = build_async_openai_client()
     try:
         response = await client.responses.create(
-            model="doubao-seed-1-6-251015",
+            model=get_text_model(),
             instructions=summarize_text_instructions,
             input=text[0:10000],
-            extra_body={"thinking": {"type": "disabled"}},
         )
         return response.output_text
     except Exception:

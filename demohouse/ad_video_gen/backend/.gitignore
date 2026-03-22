@@ -130,6 +130,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.uv-cache/
 env/
 venv/
 ENV/
@@ -173,6 +174,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 /src/logs/
+.local_media/
 
 # Deepeval
 .deepeval/

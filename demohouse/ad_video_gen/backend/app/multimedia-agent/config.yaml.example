@@ -1,19 +1,12 @@
 model:
   agent:
     provider: openai
-    name: doubao-seed-1-6-250615
-    api_base: https://ark.cn-beijing.volces.com/api/v3/
-    api_key: 
+    name: ${OPENAI_MODEL_TEXT}
+    api_base: ${OPENAI_BASE_URL}
+    api_key: ${OPENAI_API_KEY}
 
 logging:
-  # ERROR
-  # WARNING
-  # INFO
-  # DEBUG
   level: DEBUG
-
-thinking:
-  root_agent: disabled
 
 remote_agent:
   market_agent:

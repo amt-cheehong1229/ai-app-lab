@@ -25,11 +25,6 @@ storyboard_agent = Agent(
     description="根据视频配置脚本，生成分镜脚本",
     instruction=PROMPT_STORYBOARD_AGENT,
     generate_content_config=max_output_tokens_config,
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_STORYBOARD_AGENT", "enabled")}
-        }
-    },
 )
 
 story_format_agent = Agent(
@@ -41,11 +36,6 @@ story_format_agent = Agent(
     output_schema=ShotList,
     output_key="shot_list",
     after_model_callback=[fix_output_format],
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_STORY_FORMAT_AGENT", "enabled")}
-        }
-    },
 )
 
 story_agent = SequentialAgent(

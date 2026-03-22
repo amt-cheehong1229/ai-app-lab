@@ -301,6 +301,13 @@ Notice：
 3. 使用分镜图片中的image url，作为视频生成的首帧图。
 4. 调用视频生成工具，生成视频，每个分镜需要生成若干个视频，以供用户进行。每个分镜生成视频的数量，如果action里面没有指定，默认生成一个视频。
 同时需要注意，每个视频作为单独的task，组成task列表，调用一次视频生成工具，不要一个视频调用一次视频生成工具。
+调用 `video_generate` 时必须显式传入：
+- `tasks`: list
+- `tasks` 中每个元素必须包含 `video_name`、`prompt`、`first_frame`
+- `batch_size`: 生成任务数
+禁止只传 `batch_size`，否则工具无法执行。
+正确示例：
+`video_generate(tasks=[{"video_name":"task_0","prompt":"... --wm true","first_frame":"https://..."},{"video_name":"task_1","prompt":"... --wm true","first_frame":"https://..."}], batch_size=2)`
 5. 返回分镜视频列表
 （1）shot_id: str, 使用shot_X即可，标识分镜的id
 （2）prompt: str, 如何生成分镜图片的详细描述（禁止出现任何声音描述，只能有画面描述）

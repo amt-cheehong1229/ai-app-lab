@@ -34,7 +34,7 @@ def raise_result_error(
 
     - For `image_generate`, it calculates the expected number of images based on
       the `tasks` list, considering both single and group generation requests.
-    - For `video_generate`, it checks the number of videos requested in the `params` list.
+    - For `video_generate`, it checks the number of videos requested in the `tasks` list.
 
     If a mismatch is found, it returns a formatted error dictionary to halt
     the workflow and notify the user.
@@ -76,11 +76,11 @@ def raise_result_error(
 
     elif tool.name == "video_generate":
         try:
-            params = args.get("params", [])
-            if not params:
+            tasks = args.get("tasks", [])
+            if not tasks:
                 return None  # No params to check
 
-            total_expected_videos = len(params)
+            total_expected_videos = len(tasks)
             logger.debug(f"Expected {total_expected_videos} videos to be generated.")
 
             if isinstance(tool_response, dict):

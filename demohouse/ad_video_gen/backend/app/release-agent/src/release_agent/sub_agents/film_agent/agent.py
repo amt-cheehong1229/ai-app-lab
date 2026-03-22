@@ -30,9 +30,6 @@ film_generate_agent = Agent(
     instruction=PROMPT_FILM_AGENT,
     tools=[video_combine],
     generate_content_config=max_output_tokens_config,
-    model_extra_config={
-        "extra_body": {"thinking": {"type": getenv("THINKING_FILM_AGENT", "enabled")}}
-    },
 )
 
 format_agent = Agent(
@@ -44,11 +41,6 @@ format_agent = Agent(
     output_schema=VideoUrl,
     output_key="video_url",
     after_model_callback=[fix_output_format],
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_FORMAT_AGENT", "disabled")}
-        }
-    },
 )
 
 film_agent = SequentialAgent(

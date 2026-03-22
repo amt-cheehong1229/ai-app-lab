@@ -13,7 +13,6 @@ from veadk import Agent
 from .sub_agents.image.agent import image_agent
 from .sub_agents.storyboard.agent import story_agent
 from .sub_agents.video.agent import video_agent
-from veadk.config import getenv
 from director_agent.prompt import PROMPT_ROOT_AGENT
 
 agent = Agent(
@@ -22,11 +21,6 @@ agent = Agent(
     # instruction=getenv("PROMPT_ROOT_AGENT"),
     instruction=PROMPT_ROOT_AGENT,
     sub_agents=[story_agent, image_agent, video_agent],
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_DIRECTOR_AGENT", "enabled")}
-        }
-    },
 )
 
 root_agent = agent

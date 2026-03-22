@@ -27,11 +27,35 @@ logger = get_logger(__name__)
 
 # 全局浏览器实例（复用避免重复启动，提升性能）
 _global_browser = None
+_browser_unavailable = False
+
+
+def _extract_content_from_html(url: str, html_content: str):
+    img_url_list = []
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    for img in soup.find_all("img"):
+        img_src = (
+            img.get("src")
+            or img.get("data-src")
+            or img.get("lazy-src")
+            or img.get("data-lazy")
+        )
+        if img_src:
+            absolute_url = urljoin(url, img_src)
+            if not absolute_url.startswith(("data:", "svg:", "javascript:", "blob:")):
+                img_url_list.append(absolute_url)
+
+    raw_text = soup.get_text(strip=True)
+    text_content = re.sub(r"\s+", " ", raw_text)
+    return list(set(img_url_list)), text_content
 
 
 async def _init_browser():
     """初始化 Playwright 浏览器（全局复用）"""
-    global _global_browser
+    global _global_browser, _browser_unavailable
+    if _browser_unavailable:
+        return None
     if not _global_browser:
         try:
             playwright = await async_playwright().start()
@@ -48,8 +72,10 @@ async def _init_browser():
             )
             logger.info("Chromium 浏览器初始化成功")
         except Exception as e:
-            logger.error(f"浏览器初始化失败: {e}", exc_info=True)
-            raise
+            logger.warning(f"浏览器初始化失败，改用无浏览器模式: {e}", exc_info=True)
+            _browser_unavailable = True
+            _global_browser = None
+    return _global_browser
 
 
 def _is_public_ip(url: str) -> bool:
@@ -80,12 +106,20 @@ async def parse_webpage_local(url: str, render_js: bool = True, delay: int = 5):
     logger.info(f"开始网页解析：{url}，render_js={render_js}，延迟={delay}秒")
 
     # 初始化浏览器（如果尚未初始化）
-    if not _global_browser:
+    if not _global_browser and not _browser_unavailable:
         await _init_browser()
 
     if not _global_browser:
-        logger.error("浏览器未初始化")
-        raise RuntimeError("浏览器未初始化")
+        logger.info("浏览器不可用，使用 requests + BeautifulSoup 解析页面")
+        response = requests.get(
+            url,
+            timeout=15,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            },
+        )
+        response.raise_for_status()
+        return _extract_content_from_html(url, response.text)
 
     page = None
     try:

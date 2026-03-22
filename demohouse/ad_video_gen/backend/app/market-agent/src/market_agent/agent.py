@@ -11,12 +11,11 @@
 
 from veadk import Agent
 from veadk.agents.sequential_agent import SequentialAgent
-from veadk.config import getenv
-from veadk.tools.builtin_tools.web_search import web_search
 
 from market_agent.prompt import PROMPT_MARKET_AGENT, PROMPT_FORMAT_AGENT
 from .hook.format_hook import fix_output_format_with_filter
 from .tools.link_reader import read_url_link
+from .tools.perplexity_search import perplexity_search
 from .utils.types import VideoConfig, json_response_config
 
 market_agent = Agent(
@@ -24,11 +23,8 @@ market_agent = Agent(
     description="根据用户的需求，生成视频配置脚本",
     # instruction=getenv("PROMPT_MARKET_AGENT"),
     instruction=PROMPT_MARKET_AGENT,
-    tools=[web_search, read_url_link],
+    tools=[perplexity_search, read_url_link],
     output_key="video_config",
-    model_extra_config={
-        "extra_body": {"thinking": {"type": getenv("THINKING_MARKET_AGENT", "enabled")}}
-    },
 )
 
 format_agent = Agent(
@@ -40,9 +36,6 @@ format_agent = Agent(
     output_schema=VideoConfig,
     output_key="video_config",
     after_model_callback=[fix_output_format_with_filter],
-    model_extra_config={
-        "extra_body": {"thinking": {"type": getenv("THINKING_FORMAT_AGENT", "enabled")}}
-    },
 )
 
 agent = SequentialAgent(

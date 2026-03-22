@@ -21,7 +21,6 @@ from veadk import Agent
 from evaluate_agent.utils.types import (
     max_output_tokens_config,
 )
-from veadk.config import getenv
 
 from .hook.direct_output_callback import direct_output_callback
 
@@ -36,6 +35,7 @@ class EvaluateAgent(Agent):
         self, ctx: InvocationContext
     ) -> AsyncGenerator[Event, None]:
         async for event in super()._run_async_impl(ctx):
+            function_response = None
             if (
                 event.get_function_responses()
                 and event.content.parts
@@ -43,10 +43,18 @@ class EvaluateAgent(Agent):
                 and event.content.parts[0].function_response
                 and event.content.parts[0].function_response.name == "evaluate_media"
             ):
+                function_response = event.content.parts[0].function_response.response
+            if (
+                function_response
+                and (
+                    "scored_image_list" in function_response
+                    or "scored_video_list" in function_response
+                )
+            ):
                 yield event
                 # agent summary阶段，直接输出
                 text = json.dumps(
-                    event.content.parts[0].function_response.response,
+                    function_response,
                     ensure_ascii=False,
                 )
                 final_event = Event(
@@ -67,11 +75,6 @@ agent = EvaluateAgent(
     instruction=PROMPT_EVALUATE_AGENT,
     tools=[evaluate_media],
     after_tool_callback=[direct_output_callback],
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_EVALUATE_AGENT", "enabled")}
-        }
-    },
     generate_content_config=max_output_tokens_config,
 )
 

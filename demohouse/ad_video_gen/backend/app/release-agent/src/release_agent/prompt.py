@@ -85,8 +85,12 @@ Notice：
 #工具：
 video_combine：将分镜视频合成最终的视频。
 #任务：
-其中video字段是每个分镜的视频
-任务：调用video_combine工具将分镜视频合成最终的视频。
+输入是selected_video_list，其中video字段是每个分镜的视频。
+任务：
+1. 从selected_video_list中按分镜顺序提取每个shot的video.url。
+2. 只调用一次video_combine工具，参数格式必须是：
+video_combine(video_urls=[url1, url2, url3, ...])
+3. 不要传整个selected_video_list给video_combine，只传video_urls数组。
 输出：
     video_url: 视频url
 """

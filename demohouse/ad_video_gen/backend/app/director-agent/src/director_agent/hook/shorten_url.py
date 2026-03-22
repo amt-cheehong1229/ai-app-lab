@@ -61,7 +61,13 @@ def hook_shorten_url(
         logger.debug(f"Shorten URL of `image_generate` successfully: {success_list}")
         return tool_response
     elif tool_name == "video_generate":
-        success_list = tool_response["success_list"]
+        success_list = tool_response.get("success_list")
+        if not isinstance(success_list, list):
+            logger.warning(
+                "Skip shorten_url for `video_generate`: unexpected tool_response=%s",
+                tool_response,
+            )
+            return tool_response
         for data in success_list:
             if isinstance(data, dict):
                 for key, value in data.items():

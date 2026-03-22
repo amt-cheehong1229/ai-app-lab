@@ -31,9 +31,6 @@ image_generate_agent = Agent(
     tools=[image_generate],
     after_tool_callback=[raise_result_error, hook_shorten_url],
     generate_content_config=max_output_tokens_config,
-    model_extra_config={
-        "extra_body": {"thinking": {"type": getenv("THINKING_IMAGE_AGENT", "enabled")}}
-    },
 )
 
 image_format_agent = Agent(
@@ -45,11 +42,6 @@ image_format_agent = Agent(
     after_model_callback=[fix_output_format],
     output_schema=ImageList,
     output_key="image_list",
-    model_extra_config={
-        "extra_body": {
-            "thinking": {"type": getenv("THINKING_IMAGE_FORMAT_AGENT", "disabled")}
-        }
-    },
 )
 
 image_agent = SequentialAgent(

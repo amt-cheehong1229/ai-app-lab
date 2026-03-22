@@ -12,7 +12,9 @@
 import os
 import hashlib
 import logging
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 # 配置模式
@@ -39,6 +41,11 @@ else:
 logger = logging.getLogger("short_link")
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO)
+
+LOCAL_MEDIA_DIR = Path(
+    os.getenv("LOCAL_MEDIA_DIR") or Path(__file__).resolve().parents[2] / ".local_media"
+).resolve()
+LOCAL_MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 # 创建FastAPI应用
 app = FastAPI(
@@ -183,3 +190,13 @@ async def redirect_url(short_code: str, type: str = None):
     if not url:
         raise HTTPException(status_code=404, detail="Short code not found")
     return url.strip('"')
+
+
+@app.get("/files/{file_path:path}")
+async def serve_local_file(file_path: str):
+    target_path = (LOCAL_MEDIA_DIR / file_path).resolve()
+    if LOCAL_MEDIA_DIR not in target_path.parents and target_path != LOCAL_MEDIA_DIR:
+        raise HTTPException(status_code=403, detail="Access denied")
+    if not target_path.exists() or not target_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(target_path)

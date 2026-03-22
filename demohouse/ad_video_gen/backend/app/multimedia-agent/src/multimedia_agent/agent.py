@@ -53,7 +53,4 @@ root_agent = Agent(
     instruction=PROMPT_ROOT_AGENT,
     sub_agents=[market_agent, director_agent, evaluate_agent, release_agent],
     short_term_memory=ShortTermMemory(backend="local"),
-    model_extra_config={
-        "extra_body": {"thinking": {"type": getenv("THINKING_ROOT_AGENT", "enabled")}}
-    },
 )

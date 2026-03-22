@@ -10,6 +10,7 @@
 # limitations under the License.
 
 from typing import override
+from pathlib import Path
 
 import uvicorn
 from google.adk.agents.base_agent import BaseAgent
@@ -29,6 +30,18 @@ from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 from google.adk.sessions.base_session_service import BaseSessionService
 from veadk import Agent
 from veadk.memory.short_term_memory import ShortTermMemory
+
+
+def _get_adk_web_assets_dir() -> Path | None:
+    browser_dir = (
+        Path(__import__("google.adk.cli.fast_api", fromlist=["__file__"]).__file__)
+        .resolve()
+        .parent
+        / "browser"
+    )
+    if browser_dir.exists():
+        return browser_dir
+    return None
 
 
 class AgentKitAgentLoader(BaseAgentLoader):
@@ -75,7 +88,8 @@ class AgentkitAgentServerApp:
             agents_dir=".",
         )
 
-        self.app = self.server.get_fast_api_app()
+        web_assets_dir = _get_adk_web_assets_dir()
+        self.app = self.server.get_fast_api_app(web_assets_dir=web_assets_dir)
 
     def run(self, host: str, port: int = 8000) -> None:
         """Run the app with Uvicorn server."""

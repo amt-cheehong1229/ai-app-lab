@@ -9,11 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from typing import Any
 
-from openai import AsyncOpenAI
 from veadk.utils.logger import get_logger
+from ad_video_gen_runtime import build_async_openai_client, get_vision_model
 
 logger = get_logger(__name__)
 
@@ -38,14 +37,10 @@ def repair_image_input(image: str) -> dict[str, Any]:
 async def comment_image(image: str) -> dict[str, Any]:
     logger.debug(f"开始调用image_understand解析图片：{image}")
     image_part = repair_image_input(image)
-    client = AsyncOpenAI(
-        base_url=os.getenv("MODEL_AGENT_API_BASE"),
-        api_key=os.getenv("MODEL_AGENT_API_KEY"),
-    )
+    client = build_async_openai_client()
     response = await client.responses.create(
-        model="doubao-seed-1-6-251015",
+        model=get_vision_model(),
         instructions=filter_agent_instructions,
         input=[{"role": "user", "content": [image_part]}],
-        extra_body={"thinking": {"type": "disabled"}},
     )
     return {"image": image, "text": response.output_text}
